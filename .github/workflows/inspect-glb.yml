@@ -1,0 +1,21 @@
+name: Inspect ScreenBuddy GLB structure
+on:
+  push:
+    branches: [fix/idle-breathing-isolated]
+    paths:
+      - '.github/workflows/inspect-glb.yml'
+      - 'tools/inspect_glb.py'
+  workflow_dispatch:
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Inspect all NeonBot models
+        run: python tools/inspect_glb.py models/neonbot_idle.glb models/neonbot_happy.glb models/neonbot_sad.glb models/neonbot_animated.glb | tee glb-inspection.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenbuddy-glb-inspection
+          path: glb-inspection.txt
