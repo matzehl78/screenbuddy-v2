@@ -1,0 +1,21 @@
+name: Build 3D chest breathing preview
+on:
+  push:
+    branches: [fix/idle-breathing-isolated]
+    paths:
+      - 'tools/build_chest_breath.py'
+      - '.github/workflows/build-chest-breath.yml'
+  workflow_dispatch:
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build 3D chest core breathing model
+        run: python tools/build_chest_breath.py models/neonbot_idle.glb chest-breath-idle.glb
+      - uses: actions/upload-artifact@v4
+        with:
+          name: chest-breath-idle-glb
+          path: chest-breath-idle.glb
