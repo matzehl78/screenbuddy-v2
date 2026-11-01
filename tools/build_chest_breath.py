@@ -16,13 +16,13 @@ def build(source,destination):
     nodes=doc['nodes']; ids=[i for i,n in enumerate(nodes) if n.get('name')=='chest_core']
     if len(ids)!=1:raise ValueError('Expected exactly one chest_core node')
     node=ids[0]
-    binary=bytearray(next((v for k,v in chunks if k==b'BIN\\x00'),b''))
+    binary=bytearray(next((v for k,v in chunks if k==b'BIN\x00'),b''))
     # A dedicated scale animation, leaving the body, head, and mouth untouched.
     times=[0.,2.2,4.4]; scales=[1.,1.,1.,1.06,1.06,1.06,1.,1.,1.]
     def accessor(values,kind,count,atype):
         offset=len(binary)
         binary.extend(struct.pack('<'+kind*len(values),*values))
-        binary.extend(b'\\x00'*((-len(binary))%4))
+        binary.extend(b'\x00'*((-len(binary))%4))
         view=len(doc.setdefault('bufferViews',[]))
         doc['bufferViews'].append({'buffer':0,'byteOffset':offset,'byteLength':len(values)*4})
         idx=len(doc.setdefault('accessors',[]))
@@ -34,8 +34,8 @@ def build(source,destination):
     if len(doc.get('buffers',[]))!=1:raise ValueError('Expected one binary buffer')
     doc['buffers'][0]['byteLength']=len(binary)
     js=pad(json.dumps(doc,separators=(',',':')).encode(),' '.encode())
-    binchunk=pad(bytes(binary),b'\\x00')
-    output=b'glTF'+struct.pack('<II',2,12+8+len(js)+8+len(binchunk))+struct.pack('<I4s',len(js),b'JSON')+js+struct.pack('<I4s',len(binchunk),b'BIN\\x00')+binchunk
+    binchunk=pad(bytes(binary),b'\x00')
+    output=b'glTF'+struct.pack('<II',2,12+8+len(js)+8+len(binchunk))+struct.pack('<I4s',len(js),b'JSON')+js+struct.pack('<I4s',len(binchunk),b'BIN\x00')+binchunk
     Path(destination).write_bytes(output)
     print('Built',destination,'chest node',node,'bytes',len(output))
 if __name__=='__main__':build(*sys.argv[1:3])
