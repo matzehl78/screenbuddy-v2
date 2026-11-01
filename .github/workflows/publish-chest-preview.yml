@@ -1,0 +1,34 @@
+name: Publish isolated 3D chest preview
+on:
+  push:
+    branches: [fix/idle-breathing-isolated]
+    paths:
+      - '.github/workflows/publish-chest-preview.yml'
+  workflow_dispatch:
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+          fetch-depth: 0
+      - name: Generate GLB and verify new animation
+        run: |
+          python tools/build_chest_breath.py models/neonbot_idle.glb chest-breath-idle.glb
+          python tools/inspect_glb.py chest-breath-idle.glb | tee chest-inspection.txt
+          grep 'Chest_Breathe' chest-inspection.txt
+      - name: Publish only new model to main (preserve existing app)
+        run: |
+          cp chest-breath-idle.glb /tmp/chest-breath-idle.glb
+          git fetch origin main
+          git switch main
+          mkdir -p models
+          cp /tmp/chest-breath-idle.glb models/neonbot_chest_breathe.glb
+          git add models/neonbot_chest_breathe.glb
+          if ! git diff --cached --quiet; then
+            git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "test: add independent chest breathing GLB model"
+            git push origin main
+          fi
